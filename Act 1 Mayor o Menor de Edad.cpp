@@ -1,4 +1,3 @@
-
 // Código en C++ que permite determinar si el usuario es mayor de Edad.
 // Author: Grecia A. Reyes Gastelum
 // Fecha: 24/07/25
@@ -8,7 +7,6 @@ using namespace std;
 
 int main() {
     int edad;
-
 
     cout << "Ingrese su edad: ";
     cin >> edad;
