@@ -1,3 +1,7 @@
+// Código en C++ que permite generar RFC sin homoclave
+// Author: Grecia A. Reyes Gastelum
+// Fecha: 31/07/25
+
 #include <iostream>
 #include <vector>
 #include <string>
