@@ -1,0 +1,149 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <stdexcept> // Se usa para std::stoi
+
+// Diccionario de palabras NO permitidas
+const std::vector<std::string> palabrasProhibidas = {
+    "PENE", "POPO", "PUTO", "MAMO", "CULO", "QULO", "TETA", "PEDO", "JOTO",
+    "VERG", "KAKA", "CAGO", "CAGA", "FETO", "PUTA", "RUIN", "COGE", "COJE",
+    "KULO", "MION", "PITO", "LOCO", "VAGO", "VAGA", "SENO"
+    
+};
+
+// Verificar y modificar palabras prohibidas del Diccionario
+std::string corregirRFC(const std::string rfc) {
+    for (const std::string& palabra : palabrasProhibidas) {
+        if (rfc == palabra) {
+            return rfc.substr(0, 3) + "X"; // Remplaza la ultima letra por 'X'
+        }
+    }
+    return rfc;
+}
+
+// Función para obtener la primera vocal interna de una cadena
+char obtenerPrimeraVocalInterna(const std::string& str) {
+    for (size_t i = 1; i < str.length(); i++) {
+        char c = std::toupper(str[i]); // Convertir a mayúscula para la comparación
+        if (c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') {
+            return c;
+        }
+    }
+    // si no encuentra ninguna vocal interna, se usa una X
+    return 'X';
+}
+
+// Función para validar la fecha (YYYY-MM-DD) sin considerar años bisiestos
+bool validarFecha(const std::string& fecha) {
+    if (fecha.length() != 10) {
+        return false;
+    }
+
+    // Usamos un bloque try-catch para manejar errores si el usuario no introduce números
+    try {
+        // Extraer año, mes y día
+        int anio = std::stoi(fecha.substr(0, 4));
+        int mes = std::stoi(fecha.substr(5, 2));
+        int dia = std::stoi(fecha.substr(8, 2));
+
+        // Validar el año (rango razonable)
+        if (anio < 1900 || anio > 2025) { // Puedes ajustar este rango según sea necesario
+            return false;
+        }
+
+        // Validar el mes
+        if (mes < 1 || mes > 12) {
+            return false;
+        }
+
+        // Validar el día según el mes (febrero siempre con 28 días)
+        int diasEnMes;
+        if (mes == 2) {
+            diasEnMes = 28;
+        } else if (mes == 4 || mes == 6 || mes == 9 || mes == 11) {
+            diasEnMes = 30;
+        } else {
+            diasEnMes = 31;
+        }
+
+        if (dia < 1 || dia > diasEnMes) {
+            return false;
+        }
+
+    } catch (const std::invalid_argument& ia) {
+        // Captura el error si std::stoi no puede convertir a número
+        return false;
+    } catch (const std::out_of_range& oor) {
+        // Captura si el número está fuera de rango
+        return false;
+    }
+
+    return true;
+}
+
+// Función principal para calcular el rfc
+std::string calcularRFC(const std::string& nombre, const std::string& apellidoPaterno, const std::string& apellidoMaterno, const std::string& fechaNacimiento) {
+    // Se declara la variable en donde guardaremos el rfc
+    std::string rfc;
+
+    // Se obtiene la letra inicial y la primera vocal interna del apellido Paterno
+    char letraInicial = std::toupper(apellidoPaterno[0]);
+    char primeraVocalInterna = obtenerPrimeraVocalInterna(apellidoPaterno);
+
+    // Se obtiene la inicial del apellido materno o se usa una 'X' si no existe
+    char inicialApellidoMaterno = (apellidoMaterno.empty()) ? 'X' : std::toupper(apellidoMaterno[0]);
+
+    // Se obtiene la inicial del primer nombre o se usa una 'X' si no existe
+    char inicialNombre = std::toupper(nombre[0]);
+
+    // Se obtienen los dos ultimos digitos del año de fechaNacimiento
+    std::string anio = fechaNacimiento.substr(2, 2);
+    // Se obtiene el mes y el dia de fechaNacimiento
+    std::string mes = fechaNacimiento.substr(5, 2);
+    std::string dia = fechaNacimiento.substr(8, 2);
+
+    // Se construye el RFC sumando el texto de la información que se proporcionó
+    rfc = letraInicial;
+    rfc += primeraVocalInterna;
+    rfc += inicialApellidoMaterno;
+    rfc += inicialNombre;
+
+    // Aquí se compara con la BD de palabras mal formadas y se sustituye con la letra 'X'
+    rfc = corregirRFC(rfc);
+
+    // Si hay corrección se continua generando el rfc
+    rfc += anio;
+    rfc += mes;
+    rfc += dia;
+
+    return rfc;
+}
+
+int main() {
+    std::string nombre, apellidoPaterno, apellidoMaterno, fechaNacimiento;
+    
+    // Envia a consola los datos que requiere para solicitar nombre, apellido y fecha de nacimiento
+    std::cout << "Introduce tu nombre: ";
+    std::getline(std::cin, nombre);
+    std::cout << "Introduce tu apellido paterno: ";
+    std::getline(std::cin, apellidoPaterno);
+    std::cout << "Introduce tu apellido materno (Si no cuenta con apellido materno, presione Enter): ";
+    std::getline(std::cin, apellidoMaterno);
+    
+    bool fechaValida = false;
+    while (!fechaValida) {
+        std::cout << "Introduce la fecha de nacimiento en el siguiente formato (YYYY-MM-DD): ";
+        std::getline(std::cin, fechaNacimiento);
+        
+        if (validarFecha(fechaNacimiento)) {
+            fechaValida = true;
+        } else {
+            std::cout << "Error: Fecha no válida. Por favor, intente de nuevo." << std::endl;
+        }
+    }
+    
+    std::string rfc = calcularRFC(nombre, apellidoPaterno, apellidoMaterno, fechaNacimiento);
+    std::cout << "RFC: " << rfc << std::endl;
+
+    return 0;
+}
